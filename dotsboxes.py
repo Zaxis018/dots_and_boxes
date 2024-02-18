@@ -1,12 +1,13 @@
 import sys
 import pygame
+from bots import RandomBot
 
 # Initialize Pygame
 pygame.init()
 
 # Set up some constants
-WIDTH, HEIGHT = 500, 500
-ROWS, COLS = 8,8
+WIDTH, HEIGHT = 600, 600
+ROWS, COLS = 6,6
 total_boxes=(COLS-1)*(COLS-1)
 SQUARE_SIZE = WIDTH//COLS
 
@@ -23,8 +24,13 @@ lines = []
 lines_blue=[]
 lines_red=[]
 
+green_lines=[]
+
+
 blue_squares=[]
 red_squares=[]
+
+bot=RandomBot(COLS,lines)# instantiate bot object
 
 # Set up the display
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -40,6 +46,16 @@ def handle_click(coordinates):
     if coordinates in lines:
         return
     lines.append(coordinates)
+
+    bot.update_board(lines)
+    print("#################")
+    move=bot.get_move()
+    print(move)
+    green_lines.append(move)
+    print("#################")
+
+
+
     if turn==True:
         lines_red.append(coordinates)
         turn= not turn # toggles between true and false
@@ -48,7 +64,6 @@ def handle_click(coordinates):
         turn= not turn
     detect_box(coordinates)
     
-
 
 def detect_box(coordinates):
     global turn
@@ -135,6 +150,7 @@ def detect_box(coordinates):
         second_box=True
         print("second box_detetced")
 
+
     if first_box or second_box:
         turn= not turn # if box is deteteced , the player gets the turn again
     print(f"red_score: {red_score}")
@@ -146,7 +162,6 @@ def detect_box(coordinates):
 def draw_line(mouse_pos):
     box_column=(mouse_pos[0]-offset)//SQUARE_SIZE #  +1
     box_row=(mouse_pos[1]-offset)//SQUARE_SIZE  #  +1
-
 
     #now calculate all coordinates of 4 points
     left_x=SQUARE_SIZE * box_column + offset
@@ -170,14 +185,11 @@ def draw_line(mouse_pos):
         draw_to=nearest_y
 
 
-    # if  mouse_pos[0]<offset or mouse_pos[0]>(offset+(ROWS-1)*SQUARE_SIZE):
-    #     drawing_coordinates= 
-    # if  mouse_pos[1]<offset or mouse_pos[1]>(offset+(COLS-1)*SQUARE_SIZE):
-    #     return
     if draw_to==nearest_x:
         drawing_coordinates = [(nearest_x, top_y), (nearest_x, bottom_y)]
     else:
         drawing_coordinates = [(left_x, nearest_y), (right_x, nearest_y)]
+
 
 
     if turn==True:
@@ -225,9 +237,9 @@ def main():
         #draw_grid()
 
         for line in lines_red:
-            pygame.draw.line(WIN, (255, 0, 0), line[0], line[1], 3)
+            pygame.draw.line(WIN, (255, 0, 0), line[0], line[1], 4)
         for line in lines_blue:
-            pygame.draw.line(WIN, (0, 0, 255), line[0], line[1], 3)
+            pygame.draw.line(WIN, (0, 0, 255), line[0], line[1], 4)
 
         for diagonal in red_squares:
             draw_rectangle(diagonal,color=(255,220,220))
@@ -236,6 +248,9 @@ def main():
             draw_rectangle(diagonal,color=(200,200,255))
         #     pygame.draw.rect(WIN, (220,220,255), pygame.Rect(left, top, width, height))
             
+        for line in green_lines:
+            pygame.draw.line(WIN, (0, 255, 0), line[0], line[1], 1)
+
         draw_grid()
 
         if len(blue_squares)+len(red_squares)==total_boxes:
