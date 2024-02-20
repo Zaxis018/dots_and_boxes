@@ -20,7 +20,6 @@ blue_score=0
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-
 lines = []
 lines_blue=[]
 lines_red=[]
@@ -39,7 +38,7 @@ def draw_grid():
         for y in range(0, HEIGHT, SQUARE_SIZE):
             pygame.draw.circle(WIN, BLACK, (x+offset, y+offset), 5)
 
-def handle_click(coordinates):   # change needed
+def handle_click(coordinates):   
     global blue_score
     global turn
     global lines
@@ -55,9 +54,13 @@ def handle_click(coordinates):   # change needed
     else:
         if diagonals:
             blue_squares.extend(diagonals)
-            blue_score+=1  
+            blue_score+=len(diagonals)
+              
+    print(f"red_score: {red_score}")
+    print(f"blue_score: {blue_score}")
 
-def detect_box(coordinates):  #change possible
+
+def detect_box(coordinates):  
     global turn
     global red_score
     global blue_score
@@ -111,16 +114,12 @@ def detect_box(coordinates):  #change possible
         else:
             diagonals.append([(pointA[0],pointA[1]-SQUARE_SIZE),pointB])
 
-    print(f"red_score: {red_score}")
-    print(f"blue_score: {blue_score}")
-
     if first_box or second_box:
         return True,diagonals
     else:
         return False,None
 
 #to draw dotted lines where line can be drawn
-
 def draw_line(mouse_pos):     # different in 2 modes(if-else for turn) 
     box_column=(mouse_pos[0]-offset)//SQUARE_SIZE 
     box_row=(mouse_pos[1]-offset)//SQUARE_SIZE  
@@ -167,6 +166,18 @@ def draw_rectangle(points, color):
     height = abs(y2 - y1)
     pygame.draw.rect(WIN, color, pygame.Rect(x1, y1, width, height))
 
+def game_over_screen(winner, score):
+    WIN.fill((0, 0, 0))  # Change the background color
+    font = pygame.font.Font(None, 36)
+    if winner == 'blue':
+        text = font.render(f"You win with a score of {score}/{total_boxes}!", True, (0, 0, 255))
+    elif winner == 'red':
+        text = font.render(f"Computer wins with a score of {score}/{total_boxes}!", True, (255, 0, 0))
+    else:
+        text = font.render("It's a tie!", True, (255, 255, 255))
+    WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
+    pygame.display.update()
+    pygame.time.delay(5000)
 
 def main():
     clock = pygame.time.Clock()
@@ -188,7 +199,7 @@ def main():
             else:
                 if diagonals:
                     red_squares.extend(diagonals) # adds items of one list to other 
-                    red_score+=1
+                    red_score+=len(diagonals)
             # time.sleep(0.5)
         clock.tick(60)
         
@@ -201,7 +212,7 @@ def main():
         elif mouse_pos[1]<offset or mouse_pos[1]>(offset+(COLS-1)*SQUARE_SIZE):
             pass
         else:
-            coordinates=draw_line(mouse_pos)
+            draw_line(mouse_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -215,7 +226,6 @@ def main():
                 else:
                     handle_click(draw_line(mouse_pos))
 
-        #draw_grid()
         for line in lines_red:
             pygame.draw.line(WIN, (255, 0, 0), line[0], line[1], 4)
         for line in lines_blue:
@@ -226,21 +236,21 @@ def main():
         #     pygame.draw.rect(WIN, (255,220,220), pygame.Rect(left, top, width, height))
         for diagonal in blue_squares:
             draw_rectangle(diagonal,color=(200,200,255))
-        #     pygame.draw.rect(WIN, (220,220,255), pygame.Rect(left, top, width, height))
-            
-        # for line in green_lines:
-        #     pygame.draw.line(WIN, (0, 255, 0), line[0], line[1], 1)
 
         draw_grid()
 
-        if len(blue_squares)+len(red_squares)==total_boxes:
-            # print("Game OVER")
-            pass
+        if red_score+blue_score==total_boxes:
+            if blue_score > red_score:
+                game_over_screen('blue', blue_score)
+            elif red_score > blue_score:
+                game_over_screen('red', red_score)
+            else:
+                game_over_screen('tie', 0)
+            run = False
         pygame.display.update()
 
     pygame.quit()
     sys.exit()
-
 
 if __name__ == "__main__":
     main()

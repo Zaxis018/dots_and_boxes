@@ -1,6 +1,5 @@
 import sys
 import pygame
-from bots import RandomBot
 
 # Initialize Pygame
 pygame.init()
@@ -24,13 +23,12 @@ lines = []
 lines_blue=[]
 lines_red=[]
 
-green_lines=[]
-
-
 blue_squares=[]
 red_squares=[]
 
-bot=RandomBot(COLS,lines)# instantiate bot object
+#for bot mode
+# from bots import RandomBot
+# bot=RandomBot(COLS,lines)# instantiate bot object
 
 # Set up the display
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -43,26 +41,32 @@ def draw_grid():
 
 def handle_click(coordinates):
     global turn
+    global red_score
+    global blue_score
     if coordinates in lines:
         return
+    
     lines.append(coordinates)
-
-    bot.update_board(lines)
-    print("#################")
-    move=bot.get_move()
-    print(move)
-    green_lines.append(move)
-    print("#################")
-
-
     if turn==True:
         lines_red.append(coordinates)
-        turn= not turn # toggles between true and false
     else:
         lines_blue.append(coordinates)
-        turn= not turn
-    detect_box(coordinates)
     
+    detected,diagonals=detect_box(coordinates)
+
+    if not detected:
+        turn=not turn
+    else:
+        if diagonals:
+                if turn==True:
+                    red_squares.extend(diagonals)    
+                    red_score+=len(diagonals)            
+                else:
+                    blue_squares.extend(diagonals)
+                    blue_score+=len(diagonals)
+    print(f"red_score: {red_score}")
+    print(f"blue_score: {blue_score}")
+
 
 def detect_box(coordinates):
     global turn
@@ -73,8 +77,7 @@ def detect_box(coordinates):
 
     pointA=coordinates[0]
     pointB=coordinates[1]
-    # print(f"first point: {pointA}")
-    # print(f"second point: {pointB}")
+    diagonals=[]
 
     if pointA[0]==pointB[0]:
         # if vertical edge
@@ -106,56 +109,23 @@ def detect_box(coordinates):
         ]
 
     if all(edge in lines for edge in edges_to_check_1):
-        if vertical==True:
-            diagonal=[(pointA[0]-SQUARE_SIZE,pointA[1]),pointB]
-            if turn==False:
-                red_squares.append(diagonal)
-                red_score+=1
-            else:
-                blue_squares.append(diagonal)
-                blue_score+=1
-        else:
-            diagonal=[pointA,(pointB[0],pointB[1]+SQUARE_SIZE) ]
-            if turn==False:
-                red_squares.append(diagonal)
-                red_score+=1
-            else:
-                blue_squares.append(diagonal)
-                blue_score+=1
-        # turn= not turn # if box is deteteced , the player gets the turn again
         first_box=True
-        print("first box_detected")
-
+        if vertical==True:
+            diagonals.append([(pointA[0]-SQUARE_SIZE,pointA[1]),pointB])
+        else:
+            diagonals.append([pointA,(pointB[0],pointB[1]+SQUARE_SIZE)])
 
     if all(edge in lines for edge in edges_to_check_2):
-        if vertical==True:
-            diagonal=[pointA,(pointB[0]+SQUARE_SIZE,pointB[1])]
-            if turn==False:
-                red_squares.append(diagonal)
-                red_score+=1
-            else:
-                blue_squares.append(diagonal)
-                blue_score+=1
-        else:
-            diagonal=[(pointA[0],pointA[1]-SQUARE_SIZE),pointB]
-            if turn==False:
-                red_squares.append(diagonal)
-                red_score+=1
-            else:
-                blue_squares.append(diagonal)
-                blue_score+=1
-     
-        # turn= not turn # if box is deteteced , the player gets the turn again
         second_box=True
-        print("second box_detetced")
-
+        if vertical==True:
+            diagonals.append([pointA,(pointB[0]+SQUARE_SIZE,pointB[1])])
+        else:
+            diagonals.append([(pointA[0],pointA[1]-SQUARE_SIZE),pointB])
 
     if first_box or second_box:
-        turn= not turn # if box is deteteced , the player gets the turn again
-    print(f"red_score: {red_score}")
-    print(f"blue_score: {blue_score}")
-    return
-
+        return True,diagonals
+    else:
+        return False,None
 
 #to draw dotted lines where line can be drawn
 def draw_line(mouse_pos):
@@ -183,12 +153,10 @@ def draw_line(mouse_pos):
     else:
         draw_to=nearest_y
 
-
     if draw_to==nearest_x:
         drawing_coordinates = [(nearest_x, top_y), (nearest_x, bottom_y)]
     else:
         drawing_coordinates = [(left_x, nearest_y), (right_x, nearest_y)]
-
 
 
     if turn==True:
@@ -209,6 +177,18 @@ def draw_rectangle(points, color):
     height = abs(y2 - y1)
     pygame.draw.rect(WIN, color, pygame.Rect(x1, y1, width, height))
 
+def game_over_screen(winner, score):
+    WIN.fill((0, 0, 0))  # Change the background color
+    font = pygame.font.Font(None, 36)
+    if winner == 'blue':
+        text = font.render(f"Blue wins with a score of {score}/ {total_boxes}!", True, (0, 0, 255))
+    elif winner == 'red':
+        text = font.render(f"Red wins with a score of {score}/{total_boxes}!", True, (255, 0, 0))
+    else:
+        text = font.render("It's a tie!", True, (255, 255, 255))
+    WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
+    pygame.display.update()
+    pygame.time.delay(2000)
 
 def main():
     clock = pygame.time.Clock()
@@ -225,16 +205,20 @@ def main():
         elif mouse_pos[1]<offset or mouse_pos[1]>(offset+(COLS-1)*SQUARE_SIZE):
             pass
         else:
-            coordinates=draw_line(mouse_pos)
+            draw_line(mouse_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                handle_click(coordinates)
-        #draw_grid()
-
+                if  mouse_pos[0]<offset or mouse_pos[0]>(offset+(ROWS-1)*SQUARE_SIZE):
+                    pass
+                elif mouse_pos[1]<offset or mouse_pos[1]>(offset+(COLS-1)*SQUARE_SIZE):
+                    pass
+                else:
+                    handle_click(draw_line(mouse_pos))
+    
         for line in lines_red:
             pygame.draw.line(WIN, (255, 0, 0), line[0], line[1], 4)
         for line in lines_blue:
@@ -246,15 +230,17 @@ def main():
         for diagonal in blue_squares:
             draw_rectangle(diagonal,color=(200,200,255))
         #     pygame.draw.rect(WIN, (220,220,255), pygame.Rect(left, top, width, height))
-            
-        for line in green_lines:
-            pygame.draw.line(WIN, (0, 255, 0), line[0], line[1], 1)
 
         draw_grid()
 
-        if len(blue_squares)+len(red_squares)==total_boxes:
-            # print("Game OVER")
-            pass
+        if red_score+blue_score==total_boxes:
+            if blue_score > red_score:
+                game_over_screen('blue', blue_score)
+            elif red_score > blue_score:
+                game_over_screen('red', red_score)
+            else:
+                game_over_screen('tie', 0)
+            run = False
 
         pygame.display.update()
 
@@ -263,4 +249,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
