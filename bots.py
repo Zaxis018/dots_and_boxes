@@ -2,27 +2,30 @@ import random
 
 # Set up some constants
 WIDTH, HEIGHT = 600, 600
-ROWS, COLS = 6,6
-total_boxes=(COLS-1)*(COLS-1)
-SQUARE_SIZE = WIDTH//COLS
-offset=SQUARE_SIZE/2 
-
-
-all_possible_moves=[]
-for i in range (0,COLS):
-    for j in range (0,COLS-1):
-        horizontal_edge_move=[(i,j),(i,j+1)]
-        all_possible_moves.append(horizontal_edge_move)
-for i in range (0,COLS):
-    for j in range(0,COLS-1):
-        vertical_edge_move=[(j,i),(j+1,i)]
-        all_possible_moves.append(vertical_edge_move)
-
 
 class RandomBot:
     def __init__(self,grid_size,edges):
         # self.board_state=board_state
         self.grid_size=grid_size
+        global gridSize
+        gridSize=self.grid_size
+
+        ROWS, COLS = gridSize,gridSize
+        total_boxes=(COLS-1)*(COLS-1)
+
+        global all_possible_moves
+        all_possible_moves=[]
+        for i in range (0,COLS):
+            for j in range (0,COLS-1):
+                horizontal_edge_move=[(i,j),(i,j+1)]
+                all_possible_moves.append(horizontal_edge_move)
+        for i in range (0,COLS):
+            for j in range(0,COLS-1):
+                vertical_edge_move=[(j,i),(j+1,i)]
+                all_possible_moves.append(vertical_edge_move)
+
+        self.SQUARE_SIZE = WIDTH//self.grid_size
+        self.offset=self.SQUARE_SIZE/2 
         self.edges=edges
 
     def update_board(self,edge_list):
@@ -39,6 +42,7 @@ class RandomBot:
             # if random.choice([True, False]):
             #     point2 = (x + rand_num, y)
             # else:
+            
             #     point2 = (x, y + rand_num)
 
             random_number = random.randint(0, len(all_possible_moves)-1)
@@ -48,9 +52,8 @@ class RandomBot:
             move_copy = [list(move[0]), list(move[1])]
 
             # Convert grid points to actual coordinate on window
-            move_copy[0] = (offset+move_copy[0][0]*SQUARE_SIZE, offset+move_copy[0][1]*SQUARE_SIZE)
-            move_copy[1] = (offset+move_copy[1][0]*SQUARE_SIZE, offset+move_copy[1][1]*SQUARE_SIZE)
-
+            move_copy[0] = (self.offset+move_copy[0][0]*self.SQUARE_SIZE, self.offset+move_copy[0][1]*self.SQUARE_SIZE)
+            move_copy[1] = (self.offset+move_copy[1][0]*self.SQUARE_SIZE, self.offset+move_copy[1][1]*self.SQUARE_SIZE)
 
             # # Convert grid points to actual coordinate on window
             # point1 = (offset+point1[0]*SQUARE_SIZE, offset+point1[1]*SQUARE_SIZE)
@@ -84,5 +87,4 @@ class RandomBot:
 
         #return [point1,point2]
         return move_copy
-        
 
