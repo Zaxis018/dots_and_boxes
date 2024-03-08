@@ -155,9 +155,15 @@ def game_over_screen(winner, score):
     WIN.fill((0, 0, 0))  # Change the background color
     font = pygame.font.Font(None, 36)
     if winner == 'blue':
-        text = font.render(f"You win with a score of {score}/{total_boxes}!", True, (0, 0, 255))
+        if settings.mode== "AI":
+            text = font.render(f"You win with a score of {score}/{total_boxes}!", True, (0, 0, 255))
+        else:
+            text=font.render(f"Blue player wins with a score of {score}/{total_boxes}!", True, (0, 0, 255))
     elif winner == 'red':
-        text = font.render(f"Computer wins with a score of {score}/{total_boxes}!", True, (255, 0, 0))
+        if settings.mode== "AI":
+            text = font.render(f"Computer wins with a score of {score}/{total_boxes}!", True, (255, 0, 0))
+        else:
+            text = font.render(f"Red player wins with a score of {score}/{total_boxes}!", True, (255, 0, 0))
     else:
         text = font.render("It's a tie!", True, (255, 255, 255))
     WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
