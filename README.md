@@ -11,9 +11,6 @@
 ### 3.Run the game.py file.
  `python game.py`
 
-## See Demo
-### Video: [YouTube](https://youtu.be/YBA44fptmS4)
-
 ## Project Working
 ### The Project uses python language and pygame library due to thier simplicity and lot of work is already done there. Only the game logic has to be implemented.
 ### First of all a screen is rendered in pygame window and filled with background colour. Then grids are drawn over it.The user can provide desired number of grids. and only square grids can be drawn for now where number of dots is same in rows and columns.
@@ -53,7 +50,7 @@
 - `game_over_screen()` --> if game is over,displays score and winner
 
 ### `bots.py`
-#### Class is defined for random bot.The bot consists of attributes edges which is updated from the `game.py` everytime edge is drawn and `update_board()` function is called.
+#### Class are defined for different bots. The bot consists of attributes edges which is updated from the `game.py` everytime edge is drawn and `update_board()` function is called.
 
 ## Data Structures Used
 ### List:
