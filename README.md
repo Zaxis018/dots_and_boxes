@@ -51,7 +51,3 @@
 
 ### `bots.py`
 #### Class are defined for different bots. The bot consists of attributes edges which is updated from the `game.py` everytime edge is drawn and `update_board()` function is called.
-
-## Data Structures Used
-### List:
-#### To keep track of all the edges drawn , and also according to the player list is used. It is also used to store square coordinates for each player. during each iteration of main game loop these lists are indexed to render edges and squares.
