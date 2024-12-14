@@ -1,4 +1,6 @@
 import random
+import copy
+
 
 # Set up some constants
 WIDTH, HEIGHT = 600, 600
@@ -87,4 +89,96 @@ class RandomBot:
 
         #return [point1,point2]
         return move_copy
+
+class MinimaxBot:
+    def __init__(self, grid_size, edges):
+        self.grid_size = grid_size
+        self.edges = edges
+        self.SQUARE_SIZE = WIDTH // self.grid_size
+        self.offset = self.SQUARE_SIZE / 2
+
+        # Precompute all possible moves (similar to RandomBot)
+        self.all_possible_moves = []
+        for i in range(0, grid_size):
+            for j in range(0, grid_size - 1):
+                horizontal_edge = [(i, j), (i, j + 1)]
+                vertical_edge = [(j, i), (j + 1, i)]
+                self.all_possible_moves.append(horizontal_edge)
+                self.all_possible_moves.append(vertical_edge)
+
+    def update_board(self, edge_list):
+        self.edges = list(edge_list)
+
+    def evaluate_board(self, edges):
+        """
+        Evaluation function to score the current board state.
+        Higher values are better for the bot, and lower values favor the opponent.
+        """
+        score = 0
+        for i in range(self.grid_size - 1):
+            for j in range(self.grid_size - 1):
+                top = [(i, j), (i, j + 1)]
+                bottom = [(i + 1, j), (i + 1, j + 1)]
+                left = [(i, j), (i + 1, j)]
+                right = [(i, j + 1), (i + 1, j + 1)]
+
+                box_edges = [top, bottom, left, right]
+                count = sum(edge in edges for edge in box_edges)
+
+                # Adjust the score based on how close the box is to being completed
+                if count == 3:
+                    score += 10  # Favor moves that complete a box
+                elif count == 2:
+                    score += 1  # Favor moves that set up a box
+
+        return score
+
+    def minimax(self, edges, depth, is_maximizing):
+        """
+        Minimax algorithm to determine the best move.
+        """
+        if depth == 0 or len(edges) == len(self.all_possible_moves):
+            return self.evaluate_board(edges)
+
+        if is_maximizing:
+            max_eval = float('-inf')
+            for move in self.all_possible_moves:
+                if move not in edges:
+                    new_edges = edges + [move]
+                    eval = self.minimax(new_edges, depth - 1, False)
+                    max_eval = max(max_eval, eval)
+            return max_eval
+
+        else:
+            min_eval = float('inf')
+            for move in self.all_possible_moves:
+                if move not in edges:
+                    new_edges = edges + [move]
+                    eval = self.minimax(new_edges, depth - 1, True)
+                    min_eval = min(min_eval, eval)
+            return min_eval
+
+    def get_move(self):
+        """
+        Select the best move using the Minimax algorithm.
+        """
+        best_move = None
+        best_value = float('-inf')
+
+        for move in self.all_possible_moves:
+            if move not in self.edges:
+                new_edges = self.edges + [move]
+                move_value = self.minimax(new_edges, depth=3, is_maximizing=False)
+
+                if move_value > best_value:
+                    best_value = move_value
+                    best_move = move
+
+        if best_move is not None:
+            move_copy = [list(best_move[0]), list(best_move[1])]
+            move_copy[0] = (self.offset + move_copy[0][0] * self.SQUARE_SIZE, self.offset + move_copy[0][1] * self.SQUARE_SIZE)
+            move_copy[1] = (self.offset + move_copy[1][0] * self.SQUARE_SIZE, self.offset + move_copy[1][1] * self.SQUARE_SIZE)
+            return move_copy
+
+        return None
 
